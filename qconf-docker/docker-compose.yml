@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  qconf:
+    build: ./qconf 
+    networks: 
+      - frontend
+    depends_on: 
+      - zoo1
+  zoo-web:
+    image: tobilg/zookeeper-webui
+    container_name: zk-web
+    ports:
+      - "8080:8080"
+    networks:
+      - frontend
+    environment:
+      ZK_DEFAULT_NODE: qconf_zk1:2181
+      USER: admin
+      PASSWORD: 123123
+      HTTP_PORT: 8080
+    depends_on: 
+      - zoo1
+  zoo1:
+    image: zookeeper:latest
+    container_name: qconf_zk1
+    restart: always
+    ports:
+      - "2181:2181"
+    networks:
+      - frontend
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=qconf_zk1:2888:3888;2181 server.2=qconf_zk2:2888:3888;2181 server.3=qconf_zk3:2888:3888;2181
+      ZOO_4LW_COMMANDS_WHITELIST: "*"
+  zoo2:
+    image: zookeeper:latest
+    container_name: qconf_zk2
+    restart: always
+    ports:
+      - "2182:2181"
+    networks:
+      - frontend
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=qconf_zk1:2888:3888;2181 server.2=qconf_zk2:2888:3888;2181 server.3=qconf_zk3:2888:3888;2181
+    depends_on: 
+      - zoo1
+  zoo3:
+    image: zookeeper:latest
+    container_name: qconf_zk3
+    restart: always
+    ports:
+      - "2183:2181"
+    networks:
+      - frontend
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=qconf_zk1:2888:3888;2181 server.2=qconf_zk2:2888:3888;2181 server.3=qconf_zk3:2888:3888;2181
+    depends_on: 
+      - zoo1
+
+    
+networks:
+  frontend:
+    driver: bridge
